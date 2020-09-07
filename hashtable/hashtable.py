@@ -1,3 +1,5 @@
+from LinkedList import LinkedList
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -21,14 +23,12 @@ class HashTable:
     """
 
     def __init__(self, capacity):
-        # Your code here
-         
         if capacity < MIN_CAPACITY:
             capacity = MIN_CAPACITY
         self.capacity = capacity
-        self.storage = [None] * capacity
-
-
+        self.storage = [LinkedList()] * capacity
+        self.count = 0
+   
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
@@ -39,9 +39,8 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
         return len(self.storage)
-
+        
 
     def get_load_factor(self):
         """
@@ -49,8 +48,9 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-        return self.storage/ self.capacity
+        # number of elements/number of slots available
+        return self.count/self.capacity
+
 
     def fnv1(self, key):
         """
@@ -60,7 +60,7 @@ class HashTable:
         """
 
         # Your code here
-        pass
+
 
     def djb2(self, key):
         """
@@ -68,11 +68,11 @@ class HashTable:
 
         Implement this, and/or FNV-1.
         """
-        # Your code here
         hash = 5381
-        for char in key:
-            hash = ((hash << 5) + hash) + ord(char)
+        for x in key:
+            hash = ((hash << 5) + hash) + ord(x)
         return hash & 0xFFFFFFFF
+
 
     def hash_index(self, key):
         """
@@ -90,10 +90,23 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-        index = self.hash_index(key)
-        self.storage[index] = HashTableEntry(key,value)
+        my_index = self.hash_index(key)
+        #get the head of the LinkedList
+        curr = self.storage[my_index].head
 
+        #as long as the current node is not None
+        while curr:
+            #if adding the same key, set the new value
+            if curr.key == key:
+                curr.value == value
+            #go to the next node
+            curr = curr.next
+        #add the new entry to the head
+        new_entry = HashTableEntry(key, value)
+        self.storage[my_index].insert_at_head(new_entry)
+        #increment the number of elements
+        self.count += 1
+        
 
     def delete(self, key):
         """
@@ -103,9 +116,10 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-        index = self.hash_index(key)
-        self.storage[index] = None
+        # my_index = self.hash_index(key)
+        # self.storage[my_index] = None
+        self.put(key, None)
+        self.count -= 1
 
 
     def get(self, key):
@@ -116,11 +130,19 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-        index = self.hash_index(key)
-        entry = self.storage[index]
-        if entry:
-            return entry.value
+        my_index = self.hash_index(key)
+        #get the head
+        curr = self.storage[my_index].head
+        #iterate through the list
+        while curr:
+            #return value if key is found
+            if curr.key == key:
+                return curr.value
+            curr = curr.next
+        return None
+       
+
+    
 
 
     def resize(self, new_capacity):
@@ -130,7 +152,22 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+       #When load factor increases about '0.7'
+        if self.get_load_factor() > 0.7:
+            #save the storage value in a new variable
+            old_storage = self.storage
+            #define the storage with the new capacity
+            self.storage = [LinkedList()] * new_capacity
+            #go through all items in the old storage
+            for i in old_storage:
+                curr = i.head
+                while curr:
+                    #add the elements one by one
+                    self.put(curr.key, curr.value)
+                    curr = curr.next
+            #define the new capacity
+            self.capacity = new_capacity
+
 
 
 
